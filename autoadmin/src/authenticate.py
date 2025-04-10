@@ -4,7 +4,6 @@ import os, sys
 
 class auth:
     def __init__(self):
-        gis = GIS
         platform: str = None
 
     def selfAuth(self, verbose=True) -> GIS:
