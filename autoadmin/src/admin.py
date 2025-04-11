@@ -19,8 +19,8 @@ class adminTasks:
 
     def __post_init__():
         print(f"\nAuthenticating current user, checking for admin permissions")
-        admin_GIS = authenticate.auth.selfAuth()
-        if arcgis.gis.User.role(admin_GIS) == "org_admin":
+        admin_gis = authenticate.auth.selfAuth()
+        if arcgis.gis.User.role(admin_gis) == "org_admin":
             print(f"\nSuccesfully verified current user as organization administrator")
             pass
         else:
@@ -28,6 +28,7 @@ class adminTasks:
 
 
     def transferItems(self, gis, id_list) -> None:
+        """Transfers items from the admin user attribute of the adminTasks class"""
         target_user = self.admin_user
         for item_id in id_list:
             item = gis.content.get(item_id)        

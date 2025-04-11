@@ -54,5 +54,10 @@ class contentSearch:
             item_ids.append(value['id'])
         return item_ids
     
+    def _replaceSpecialChars(self, title: str) -> str:
+        special_chars = "$&+,:;=?@#|'<>.^*()%!- "
+        pattern = "[" + re.escape(special_chars) + "]"
+        return re.sub(pattern, "_", title)
+    
     
         
