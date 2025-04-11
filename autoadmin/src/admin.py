@@ -8,13 +8,13 @@ from typing import Optional, List, Dict
 
 import arcgis.gis
 from. import authenticate
-from . import content
+from .content import contentSearch
 
 @dataclass
 class adminTasks:
-    def __init__(self, online_gis, portal_gis):
-        online_gis = Optional[GIS]
+    def __init__(self, admin_user, online_gis, portal_gis):
         admin_user = Optional[arcgis.gis.User]
+        online_gis = Optional[GIS]
         portal_gis = Optional[GIS]
 
     def __post_init__():
@@ -37,23 +37,30 @@ class adminTasks:
             except Exception as e:
                 print(f"error: {e}")
 
+    def sharePublic(self, item: arcgis.gis.Item) -> any:
+        """Adjusts the sharing permissions of a single content item and returns the sharing manager"""    
+        try:
+            item_sharing_mgr = item.sharing
+            item_sharing_mgr.sharing_level = "everyone"
+            print(f"Set sharing level to everyone for {item.title}.")
+            return item_sharing_mgr
+        except Exception as e:
+            print(f"\nThere was an error adjusting the sharing level {e}")
+            return None
 
-    def addItemsToGroup(self, gis, items: arcgis.gis.Item, target_group: str = None) -> None:
+
+    def addItemsToGroup(self, gis, items: arcgis.gis.Item | List[arcgis.gis.Item], target_group: str = None) -> None:
         if not items:
             return None
-        for item in items:
-            try:
-                item_sharing_mgr = item.sharing
-                item_sharing_mgr.sharing_level = "everyone"
-                print(f"Set sharing level to everyone for {item.title}.")
-                
-                # Check for group tags and share accordingly
+        for item in items:                
                 content = content.contentSearch()
+                item_sharing_mgr = self.sharePublic(item)
                 for tag in item.tags:
                     # this will be a database call
                     if tag in content.group_dict:
-                        group = gis.groups.get(content.group_dict[tag])
-                        item_sharing_mgr.groups.add(group)
-                        print(f"Added {item.title} to group '{tag}'.")
-            except Exception as e:
-                print(f"Error in addItemsToGroup for item {item.title}: {e}")
+                        try:
+                            group = gis.groups.get(contentSearch.group_dict[tag])
+                            item_sharing_mgr.groups.add(group)
+                            print(f"Added {item.title} to group '{tag}'.")
+                        except Exception as e:
+                            print(f"Error in addItemsToGroup for item {item.title}: {e}")

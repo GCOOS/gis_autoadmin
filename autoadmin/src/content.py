@@ -12,12 +12,15 @@ class contentSearch:
     def __init__(self, online_gis, portal_gis):
         online_gis = Optional[GIS]
         portal_gis = Optional[GIS]
-        groups_dict = group_dict = {
-            "cwg1": "dbb572ec95c641718e7fba8e5524a27a",
-            "CET": "0f9e3559841143918c65ff6a0fb08ac6",
-            "STA" : "54a8889f2d0841c3a31cb4fa120cf0ff",
-            "SOAP": "cf15663a8519489a9154e33d0a982c1d"
-            }
+        groups_dict = {
+            "test_group": "b7a468b1c1554e62aecdcd63b9e8da7c"
+        }
+        # groups_dict = group_dict = {
+        #     "cwg1": "dbb572ec95c641718e7fba8e5524a27a",
+        #     "CET": "0f9e3559841143918c65ff6a0fb08ac6",
+        #     "STA" : "54a8889f2d0841c3a31cb4fa120cf0ff",
+        #     "SOAP": "cf15663a8519489a9154e33d0a982c1d"
+        #     }
 
     def __post_init__(self):
         try:
