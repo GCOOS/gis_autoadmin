@@ -9,12 +9,14 @@ from. import authenticate
 
 @dataclass
 class contentSearch:
-    def __init__(self, online_gis, portal_gis):
+    def __init__(self, 
+                 groups_dict: dict= {"test_group": "b7a468b1c1554e62aecdcd63b9e8da7c"}, 
+                 online_gis=None, 
+                 portal_gis=None): 
+        self.groups_dict = groups_dict
         online_gis = Optional[GIS]
         portal_gis = Optional[GIS]
-        groups_dict = {
-            "test_group": "b7a468b1c1554e62aecdcd63b9e8da7c"
-        }
+        
         # groups_dict = group_dict = {
         #     "cwg1": "dbb572ec95c641718e7fba8e5524a27a",
         #     "CET": "0f9e3559841143918c65ff6a0fb08ac6",
@@ -24,7 +26,7 @@ class contentSearch:
 
     def __post_init__(self):
         try:
-            self_gis = authenticate.auth.selfAuth()
+            self.online_gis = authenticate.auth.selfAuth()
         except Exception as e:
             print(f"An error occured while authenticating for content search {e}")
 

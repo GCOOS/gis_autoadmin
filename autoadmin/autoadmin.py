@@ -1,5 +1,13 @@
-def main():
-    print("Start")
+from src.admin import adminTasks
+from src.authenticate import auth
+from src.content import contentSearch
+from src.tags import tagCommands
 
-if __name__ == "__main__":
-    main()
+def executeTagCommands() -> None:
+    """This module will wrap the components in source to provide a 
+    process that can be called for scheduled tasks"""
+    # first we want to get the groups to check for content
+    contentObj = contentSearch()
+    group_ids = list(contentObj.groups_dict.values())
+    print(group_ids)
+    

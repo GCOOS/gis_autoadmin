@@ -72,7 +72,42 @@ class tagCommands:
             self.removeCommandTags(item_id)
         
         adminTasks.addItemsToGroup(self.admin_gis, items_to_add)
+    
+    def processCommands(self, cmd_id_map):
+        """
+        Processes the command mapping and executes the corresponding function for each command.
+        Groups items by command type and executes the command function with a list of item ids.
+        """
+        command_map = {
+            "publish": self.cmdPublish
+        }
+        
+        grouped_commands = {}
+        for item_id, commands in cmd_id_map.items():
+            for cmd in commands:
+                if cmd in command_map:
+                    if cmd not in grouped_commands:
+                        grouped_commands[cmd] = []
+                    grouped_commands[cmd].append(item_id)
+        
+        for cmd, id_list in grouped_commands.items():
+            print(f"Executing command '{cmd}' for items: {id_list}")
+            try:
+                command_function = command_map[cmd]
+                command_function(id_list)
+            except Exception as e:
+                print(f"An error occured executing the function {command_function} for item {id_list}")
 
+    def executeCommandsByGroup(self, group_ids):
+        for group_id in group_ids:
+            print(f"Processing group {group_id}...")
+            content = contentSearch.getGroupContent(self.admin_gis, group_id)
+            tasks = self.buildTasks(self.admin_gis, content)
+            print(tasks)
+            if tasks:
+                self.processCommands(tasks)
+            else:
+                print("No command tasks found in this group.")
     
     def cmdGulfView(self, id_list: list[str], filter_type:str = "intersect") -> None:
         # we start with an "item"
@@ -143,41 +178,3 @@ class tagCommands:
                 adminTasks.transferItems(self.admin_gis, view_item_id_list, target_user=str(self.admin_gis.users.me))
             except Exception as e:
                 print(f"\nError updating the view item properties or changing ownership: {e}")
-
-    def processCommands(self, cmd_id_map):
-        """
-        Processes the command mapping and executes the corresponding function for each command.
-        Groups items by command type and executes the command function with a list of item ids.
-        """
-        command_map = {
-            "publish": self.cmdPublish
-        }
-        
-        grouped_commands = {}
-        for item_id, commands in cmd_id_map.items():
-            for cmd in commands:
-                if cmd in command_map:
-                    if cmd not in grouped_commands:
-                        grouped_commands[cmd] = []
-                    grouped_commands[cmd].append(item_id)
-        
-        for cmd, id_list in grouped_commands.items():
-            print(f"Executing command '{cmd}' for items: {id_list}")
-            try:
-                command_function = command_map[cmd]
-                command_function(id_list)
-            except Exception as e:
-                print(f"An error occured executing the function {command_function} for item {id_list}")
-
-    def iterateGroupsForCommands(self, group_ids):
-        for group_id in group_ids:
-            print(f"Processing group {group_id}...")
-            content = contentSearch.getGroupContent(self.admin_gis, group_id)
-            tasks = self.buildTasks(self.admin_gis, content)
-            print(tasks)
-            if tasks:
-                self.processCommands(tasks)
-            else:
-                print("No command tasks found in this group.")
-    
-    
