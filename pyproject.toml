@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gis_autoadmin"
+version = "0.1"
+description = "A tool for handling administrative GIS tasks with tags"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "tabulate",
+    "pandas"
+    ]
+
+[tool.setuptools.packages.find]
+where = ["."]

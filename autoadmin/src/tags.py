@@ -9,6 +9,8 @@ from .admin import adminTasks
 from. authenticate import auth
 from .content import contentSearch
 
+# Admin required Module
+
 
 @dataclass
 class tagCommands:
@@ -26,34 +28,47 @@ class tagCommands:
         else:
             print(f"\nCurrent user is not an administrator, this module is not for you.")
 
-    def removeCommandTags(self, item_id: str):
-        update_dict = {}
-        command_tags = []
-        
-        content_item = self.admin_gis.content.get(item_id)
-        old_tags = content_item.tags
-        for tag in old_tags:
-            if tag.startswith("cmd_"):
-                command_tags.append(tag)
-        
-        for tag in command_tags:
-            old_tags.remove(tag)        
-        
-        print(old_tags)
-        if old_tags is not None:
-            content_item.update(item_properties={'tags': old_tags})
-        else:
-            print(f"No tags detected for content item: {content_item.id}")
+    def removeCommandTag(self, item: arcgis.gis.Item, command: str):
+        """This function should be passed at the end of every command function"""
+        target_command_tag = f"cmd_{command}"
+        gis = self.admin_gis
+        content_item = gis.content.get(item)
+        current_tags = content_item.tags
+        for tag in current_tags:
+            if tag == target_command_tag:
+                current_tags.remove(tag)
+        try:
+            content_item.update(item_properties={'tags': current_tags})
+        except Exception as e:
+            print(f"Error while removing the command tag: {e}")
 
-    def buildTasks(gis, admin_name: str, content_dict: dict) -> dict:
-        """Checks for the presence of command tags for all accounts belonging to 
-        an or """
+    # def removeCommandTags(self, item_id: str, command: str):
+    #     update_dict = {}
+    #     command_tags = []
+        
+    #     content_item = self.admin_gis.content.get(item_id)
+    #     old_tags = content_item.tags
+    #     for tag in old_tags:
+    #         if tag.startswith("cmd_"):
+    #             command_tags.append(tag)
+        
+    #     for tag in command_tags:
+    #         old_tags.remove(tag)        
+        
+    #     print(old_tags)
+    #     if old_tags is not None:
+    #         content_item.update(item_properties={'tags': old_tags})
+    #     else:
+    #         print(f"No tags detected for content item: {content_item.id}")
+
+    def buildTaskDict(self, content_list: List[arcgis.gis.Item], admin_name: str = None) -> dict:
+        """Builds a dictionary of item.id: [cmds] """
         cmd_id_map = {}
-        for key, value in content_dict.items():
+        for item in content_list:
             cmds = [] 
-            current_item_id = value['id']  # Always get the item id
-            if value['owner'] != admin_name:
-                for tag in value['tags']:
+            current_item_id = item.id  # Always get the item id
+            if item.owner != self.admin_gis.properties.portalName:
+                for tag in item.tags:
                     if tag.startswith("cmd_"):
                         command = tag.split("cmd_")[1]
                         cmds.append(command)
@@ -62,16 +77,33 @@ class tagCommands:
                 cmd_id_map[current_item_id] = cmds
         return cmd_id_map
     
-    def cmdPublish(self, id_list: list[str]) -> None:
-        adminTasks.transferItems(self.admin_gis)
-
-        items_to_add = []
-        for item_id in id_list:
-            item = self.admin_gis.content.get(item_id)
-            items_to_add.append(item)
-            self.removeCommandTags(item_id)
+    def cmdPublish(self, item_id: str) -> None:
+        item = self.admin_gis.content.get(item_id)
+        # first change owner
+        adminTasks.transferOwnership(item)
         
-        adminTasks.addItemsToGroup(self.admin_gis, items_to_add)
+        functional_group_ids = []
+        for k, v in contentSearch.functional_groups.items():
+            functional_group_ids.append(v)
+
+        thematic_groups_ids = []
+        thematic_group_tags = []
+        # iterate through the groups to get the key, which is the tag we are looking for
+        # build a list of possible group tags
+        for k, v in contentSearch.thematic_groups.items():
+            thematic_group_tags.append(k)
+
+        # check if a tag matches a thematic group tag
+        for tag in item.tags:
+            if tag in thematic_group_tags:
+                thematic_groups_ids.append(v)
+        # share to the groups
+        adminTasks.addItemToGroup(item, thematic_groups_ids)
+        # unshare from the functional groups
+        adminTasks.removeItemFromGroup(item, functional_group_ids)
+        # remove the cmd_publish tag
+        self.removeCommandTag(item, "publish") 
+
     
     def processCommands(self, cmd_id_map):
         """
@@ -98,16 +130,13 @@ class tagCommands:
             except Exception as e:
                 print(f"An error occured executing the function {command_function} for item {id_list}")
 
-    def executeCommandsByGroup(self, group_ids):
-        for group_id in group_ids:
-            print(f"Processing group {group_id}...")
-            content = contentSearch.getGroupContent(self.admin_gis, group_id)
-            tasks = self.buildTasks(self.admin_gis, content)
-            print(tasks)
-            if tasks:
-                self.processCommands(tasks)
-            else:
-                print("No command tasks found in this group.")
+    def executeCommands(self):    
+        content_list = contentSearch.functionalGroupContent(self.admin_gis) 
+        tasks = self.buildTaskDict(self.admin_gis, content_list)
+        if tasks:
+            self.processCommands(tasks)
+        else:
+            print("No command tasks found in this group.")
     
     def cmdGulfView(self, id_list: list[str], filter_type:str = "intersect") -> None:
         # we start with an "item"

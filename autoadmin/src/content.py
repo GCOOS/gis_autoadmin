@@ -10,10 +10,16 @@ from. import authenticate
 @dataclass
 class contentSearch:
     def __init__(self, 
-                 groups_dict: dict= {"test_group": "b7a468b1c1554e62aecdcd63b9e8da7c"}, 
+                 functional_groups: dict= {"test_group": "b7a468b1c1554e62aecdcd63b9e8da7c",
+                                           "cwg1": "dbb572ec95c641718e7fba8e5524a27a"},
+                 
+                 thematic_groups: dict= {"test_publish": "b84a8a40ede4442495449a707a66a137"}, 
+                 
                  online_gis=None, 
                  portal_gis=None): 
-        self.groups_dict = groups_dict
+        
+        self.functional_groups = functional_groups
+        self.thematic_groups = thematic_groups
         online_gis = Optional[GIS]
         portal_gis = Optional[GIS]
         
@@ -50,6 +56,18 @@ class contentSearch:
         
         return content_dict 
     
+    def functionalGroupContent(self, gis: GIS) -> List[arcgis.gis.Item]:
+        """Gets content from all functional groups"""
+        functional_content = []    
+        # we could build functional groups programmatically each time
+        for group in self.functional_groups:
+            group_item = gis.groups.get(group)
+            group_content = group_content()
+            for item in group_content:
+                functional_content.append(item)
+        return functional_content
+    
+
     def makeIdList(self, content_dict: dict) -> list:
         item_ids = []
         for key, value in content_dict.items():
