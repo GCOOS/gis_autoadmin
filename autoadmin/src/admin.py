@@ -14,10 +14,10 @@ from .content import contentSearch
 @dataclass
 class adminTasks:
     def __init__(self, admin_user, admin_gis, online_gis, portal_gis):
-        admin_user = Optional[arcgis.gis.User]
-        admin_gis = Optional[GIS]
-        online_gis = Optional[GIS]
-        portal_gis = Optional[GIS]
+        self.admin_user = Optional[arcgis.gis.User]
+        self.admin_gis = Optional[GIS]
+        self.online_gis = Optional[GIS]
+        self.portal_gis = Optional[GIS]
 
     def __post_init__(self):
         print(f"\nAuthenticating current user, checking for admin permissions")
@@ -30,7 +30,7 @@ class adminTasks:
             print(f"\nCurrent user is not an administrator, this module is not for you.")
 
 
-    def transferOwnership(self, item: GIS.content.item) -> None:
+    def transferOwnership(self, item: arcgis.gis.Item) -> None:
         """Transfers items from the admin user attribute of the adminTasks class"""
         gis = self.online_gis
         target_user = self.admin_user

@@ -14,19 +14,20 @@ from .content import contentSearch
 
 @dataclass
 class tagCommands:
-    def __init__(self, admin_gis, online_gis, portal_gis):
-        admin_gis = Optional[GIS]
-        portal_gis = Optional[GIS]
-
-    def __post_init__(self):
-        print(f"\nModule requires administrator privellages, checking permissions")
-        admin_gis = auth.selfAuth()
-        if arcgis.gis.User.role(admin_gis) == "org_admin":
-            print(f"\nSuccesfully verified current user as organization administrator")
-            self.admin_gis = admin_gis
-            pass
-        else:
-            print(f"\nCurrent user is not an administrator, this module is not for you.")
+    def __init__(self, gis, admin_gis=None):    
+        self.gis =  gis
+        self.admin_gis = Optional[GIS]
+    
+    # def __post_init__(self, gis):
+    #     print(f"\nModule requires administrator privellages, checking permissions")
+    #     if arcgis.gis.User.role(gis) == "org_admin":
+    #         print(f"\nSuccesfully verified current user as organization administrator")
+    #         self.admin_gis = gis
+    #         pass
+    #     else:
+    #         # not catching anything here
+    #         self.admin_gis = gis
+    #         print(f"\nCurrent user is not an administrator, this module is not for you.")
 
     def removeCommandTag(self, item: arcgis.gis.Item, command: str):
         """This function should be passed at the end of every command function"""
@@ -130,9 +131,10 @@ class tagCommands:
             except Exception as e:
                 print(f"An error occured executing the function {command_function} for item {id_list}")
 
-    def executeCommands(self):    
-        content_list = contentSearch.functionalGroupContent(self.admin_gis) 
-        tasks = self.buildTaskDict(self.admin_gis, content_list)
+    def executeCommands(self): 
+        search = contentSearch(self.gis)   
+        content_list = search.functionalGroupContent(self.gis) 
+        tasks = self.buildTaskDict(self.gis, content_list)
         if tasks:
             self.processCommands(tasks)
         else:

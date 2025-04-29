@@ -3,8 +3,8 @@ from getpass import getpass
 import os, sys 
 
 class auth:
-    def __init__(self):
-        platform: str = None
+    def __init__(self, platform=None):
+        self.platform: str = None
 
     def selfAuth(self, verbose=True) -> GIS:
         """For authenticating the user in the hosted notebook environment"""
