@@ -12,25 +12,32 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
 import re
 from arcgis.gis import GIS
-import authenticate
+
 
 @dataclass
-class ContentSearch:
+class contentSearch:
+    """
+    Searches ArcGIS Online groups tagged as 'functional' or 'thematic',
+    and stores their IDs and tags.
+    """
     gis: Optional[GIS] = None
-    functional_groups: Dict[str, str] = field(default_factory=lambda: {
-        "test_group": "b7a468b1c1554e62aecdcd63b9e8da7c",
-        "cwg1":       "dbb572ec95c641718e7fba8e5524a27a"
-    })
-    thematic_groups: Dict[str, str] = field(default_factory=lambda: {
-        "test_publish": "b84a8a40ede4442495449a707a66a137"
-    })
+    functional_groups: List[str] = field(init=False)
+    thematic_groups: Dict[str, List[str]] = field(init=False)
 
     def __post_init__(self):
+        # Authenticate if no GIS instance was provided
         if self.gis is None:
-            if global_gis is not None:
-                self.gis = global_gis
-            else:
-                self.gis = auth().selfAuth()
+            # Use the 'home' profile or modify as needed
+            self.gis = GIS("home")
+
+        # Build list of functional group IDs\hyphen
+        functional_search = self.gis.groups.search("tags:functional")
+        self.functional_groups = [grp.id for grp in functional_search]
+
+        # Build dict of thematic group IDs mapping to their tags
+        thematic_search = self.gis.groups.search("tags:thematic")
+        self.thematic_groups = {grp.id: grp.tags for grp in thematic_search}
+
 
     def group_content_dict(self, group_id: str) -> Dict[str, Any]:
         """Return a dict of item metadata keyed by item.title for one group."""
