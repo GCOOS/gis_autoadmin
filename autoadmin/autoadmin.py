@@ -1,6 +1,6 @@
 from src.admin import adminTasks
 from src.authenticate import gis as global_gis, auth
-from src.content import contentSearch
+from src.content import contentGroups
 from src.tags import tagCommands
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict

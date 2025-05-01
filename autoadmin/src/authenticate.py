@@ -24,7 +24,7 @@ class auth:
             if verbose:
                 print("Successfully authenticated in ArcGIS Online.")
                 print("Portal Name:", self.gis.properties.portalName)
-            return None
+            return self.gis
 
         except Exception as e:
             print("Error during environment-based authentication:", e)

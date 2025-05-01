@@ -4,11 +4,11 @@ from typing import Optional, List, Dict
 
 from arcgis.gis import GIS, ItemProperties
 import arcgis.geometry
-from arcgis.geometry import Geometry
+# from arcgis.geometry import Geometry
 from arcgis.features import FeatureLayerCollection
 
 from .admin import adminTasks
-from .content import contentSearch
+from .content import contentGroups
 from .authenticate import gis as global_gis, auth
 
 # Admin required Module
@@ -38,8 +38,7 @@ class tagCommands:
     def removeCommandTag(self, item: arcgis.gis.Item, command: str):
         """This function should be passed at the end of every command function"""
         target_command_tag = f"cmd_{command}"
-        gis = self.gis
-        content_item = gis.content.get(item)
+        content_item = item
         current_tags = content_item.tags
         for tag in current_tags:
             if tag == target_command_tag:
@@ -67,38 +66,46 @@ class tagCommands:
         return cmd_id_map
     
     def cmdPublish(self, item_id: str) -> None:
+        """Take a single item and share it to multiple groups"""
         item = self.gis.content.get(item_id)
         # first change owner
         self.adminTasksInstance.transferOwnership(item)
         
-        functional_group_ids = []
-        for k, v in contentSearch.functional_groups.items():
-            functional_group_ids.append(v)
-
-        thematic_groups_ids = []
-        thematic_group_tags = []
+        thematic_group_ids = []
         # iterate through the groups to get the key, which is the tag we are looking for
         # build a list of possible group tags
-        for k, v in contentSearch.thematic_groups.items():
-            thematic_group_tags.append(k)
+        contentG = contentGroups()
+        for k, v in contentG.thematic_groups.items():
+            # check if the group id is in the item tags
+            if k in item.tags:
+                thematic_group_ids.append(v)
 
-        # check if a tag matches a thematic group tag
-        for tag in item.tags:
-            if tag in thematic_group_tags:
-                thematic_groups_ids.append(v)
         # share to the groups
-        self.adminTasksInstance.addItemToGroup(item, thematic_groups_ids)
+        try:
+            print(f"\nAttempting to share to groups {thematic_group_ids}")
+            self.adminTasksInstance.addItemToGroup(item, thematic_group_ids)
+        except Exception as e:
+            print(f"\nError adding item to the thematic group: {e}")
         # unshare from the functional groups
-        self.adminTasksInstance.removeItemFromGroup(item, functional_group_ids)
+        try:
+            self.adminTasksInstance.removeItemFromFunctionalGroup(item)
+        except Exception as e:
+            print(f"\nError removing item from functional group: {e}")
         # remove the cmd_publish tag
-        self.removeCommandTag(item, "publish") 
-
+        try:
+            self.removeCommandTag(item, "publish") 
+        except Exception as e:
+            print(f"\nError removing command tag: {e}")
+        try:
+            self.adminTasksInstance.sharePublic(item)
+        except Exception as e:
+            print(f"\nError sharing item to everyone: {e}")
+        
     
     def processCommands(self, cmd_id_map):
         command_map = {
             "publish": self.cmdPublish
         }
-
         grouped_commands = {}
         for item_id, commands in cmd_id_map.items():
             for cmd in commands:
@@ -115,8 +122,8 @@ class tagCommands:
                     traceback.print_exc()
 
     def executeCommands(self): 
-        search = contentSearch(self.gis)   
-        content_list = search.functionalGroupContent(self.gis) 
+        search = contentGroups(gis= self.gis)   
+        content_list = search.allFunctionalGroupContent() 
         tasks = self.buildTaskDict(content_list)
         if tasks:
             self.processCommands(tasks)

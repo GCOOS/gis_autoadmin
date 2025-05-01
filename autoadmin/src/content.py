@@ -1,8 +1,8 @@
 import re
 from arcgis.gis import GIS, ItemProperties
-import arcgis.geometry
-from arcgis.geometry import Geometry
-from arcgis.features import FeatureLayerCollection
+# import arcgis.geometry
+# from arcgis.geometry import Geometry
+# from arcgis.features import FeatureLayerCollection
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 from .authenticate import gis as global_gis, auth
@@ -15,7 +15,7 @@ from arcgis.gis import GIS
 
 
 @dataclass
-class contentSearch:
+class contentGroups:
     """
     Searches ArcGIS Online groups tagged as 'functional' or 'thematic',
     and stores their IDs and tags.
@@ -30,13 +30,23 @@ class contentSearch:
             # Use the 'home' profile or modify as needed
             self.gis = GIS("home")
 
-        # Build list of functional group IDs\hyphen
+        # Build functional group list logic
         functional_search = self.gis.groups.search("tags:functional")
         self.functional_groups = [grp.id for grp in functional_search]
 
-        # Build dict of thematic group IDs mapping to their tags
+        # Build thematic group dict logic
         thematic_search = self.gis.groups.search("tags:thematic")
-        self.thematic_groups = {grp.id: grp.tags for grp in thematic_search}
+        thematic_groups_dict = {}
+        for group in thematic_search:
+            id_tag = None
+            for tag in group.tags:
+                if tag.startswith("id_"):
+                    tagSplit = tag.split("id_")
+                    id_tag = tagSplit[1]
+
+            thematic_groups_dict[id_tag] = group.id
+        
+        self.thematic_groups = thematic_groups_dict
 
 
     def group_content_dict(self, group_id: str) -> Dict[str, Any]:
@@ -58,10 +68,10 @@ class contentSearch:
             for item in content
         }
 
-    def functional_group_content(self) -> List[Any]:
+    def allFunctionalGroupContent(self) -> List[Any]:
         """Get a flat list of all Items in all functional groups."""
         items: List[Any] = []
-        for group_id in self.functional_groups.values():
+        for group_id in self.functional_groups:
             grp = self.gis.groups.get(group_id)
             items.extend(grp.content())
         return items
