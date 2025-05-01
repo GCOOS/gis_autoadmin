@@ -1,38 +1,44 @@
-import re
+import re, traceback
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict
+
 from arcgis.gis import GIS, ItemProperties
 import arcgis.geometry
 from arcgis.geometry import Geometry
 from arcgis.features import FeatureLayerCollection
-from dataclasses import dataclass, field
-from typing import Optional, List, Dict
+
 from .admin import adminTasks
-from. authenticate import auth
 from .content import contentSearch
+from .authenticate import gis as global_gis, auth
 
 # Admin required Module
-
+# commands use item ids
 
 @dataclass
 class tagCommands:
-    def __init__(self, gis, admin_gis=None):    
-        self.gis =  gis
-        self.admin_gis = Optional[GIS]
-    
-    # def __post_init__(self, gis):
-    #     print(f"\nModule requires administrator privellages, checking permissions")
-    #     if arcgis.gis.User.role(gis) == "org_admin":
-    #         print(f"\nSuccesfully verified current user as organization administrator")
-    #         self.admin_gis = gis
-    #         pass
-    #     else:
-    #         # not catching anything here
-    #         self.admin_gis = gis
-    #         print(f"\nCurrent user is not an administrator, this module is not for you.")
+    # required
+    publishing_user: str
+
+    # optional
+    gis: GIS = None
+    target_gis: GIS = None
+    adminTasksInstance: Optional[adminTasks] = None
+
+    def __post_init__(self):
+        # Ensure we have a GIS connection
+        if self.gis is None:
+            if global_gis is not None:
+                self.gis = global_gis
+            else:
+                self.gis = auth().selfAuth()
+        
+        self.adminTasksInstance = adminTasks(self.publishing_user)
+
 
     def removeCommandTag(self, item: arcgis.gis.Item, command: str):
         """This function should be passed at the end of every command function"""
         target_command_tag = f"cmd_{command}"
-        gis = self.admin_gis
+        gis = self.gis
         content_item = gis.content.get(item)
         current_tags = content_item.tags
         for tag in current_tags:
@@ -43,24 +49,6 @@ class tagCommands:
         except Exception as e:
             print(f"Error while removing the command tag: {e}")
 
-    # def removeCommandTags(self, item_id: str, command: str):
-    #     update_dict = {}
-    #     command_tags = []
-        
-    #     content_item = self.admin_gis.content.get(item_id)
-    #     old_tags = content_item.tags
-    #     for tag in old_tags:
-    #         if tag.startswith("cmd_"):
-    #             command_tags.append(tag)
-        
-    #     for tag in command_tags:
-    #         old_tags.remove(tag)        
-        
-    #     print(old_tags)
-    #     if old_tags is not None:
-    #         content_item.update(item_properties={'tags': old_tags})
-    #     else:
-    #         print(f"No tags detected for content item: {content_item.id}")
 
     def buildTaskDict(self, content_list: List[arcgis.gis.Item], admin_name: str = None) -> dict:
         """Builds a dictionary of item.id: [cmds] """
@@ -68,7 +56,7 @@ class tagCommands:
         for item in content_list:
             cmds = [] 
             current_item_id = item.id  # Always get the item id
-            if item.owner != self.admin_gis.properties.portalName:
+            if item.owner != self.gis.properties.portalName:
                 for tag in item.tags:
                     if tag.startswith("cmd_"):
                         command = tag.split("cmd_")[1]
@@ -79,9 +67,9 @@ class tagCommands:
         return cmd_id_map
     
     def cmdPublish(self, item_id: str) -> None:
-        item = self.admin_gis.content.get(item_id)
+        item = self.gis.content.get(item_id)
         # first change owner
-        adminTasks.transferOwnership(item)
+        self.adminTasksInstance.transferOwnership(item)
         
         functional_group_ids = []
         for k, v in contentSearch.functional_groups.items():
@@ -99,42 +87,37 @@ class tagCommands:
             if tag in thematic_group_tags:
                 thematic_groups_ids.append(v)
         # share to the groups
-        adminTasks.addItemToGroup(item, thematic_groups_ids)
+        self.adminTasksInstance.addItemToGroup(item, thematic_groups_ids)
         # unshare from the functional groups
-        adminTasks.removeItemFromGroup(item, functional_group_ids)
+        self.adminTasksInstance.removeItemFromGroup(item, functional_group_ids)
         # remove the cmd_publish tag
         self.removeCommandTag(item, "publish") 
 
     
     def processCommands(self, cmd_id_map):
-        """
-        Processes the command mapping and executes the corresponding function for each command.
-        Groups items by command type and executes the command function with a list of item ids.
-        """
         command_map = {
             "publish": self.cmdPublish
         }
-        
+
         grouped_commands = {}
         for item_id, commands in cmd_id_map.items():
             for cmd in commands:
                 if cmd in command_map:
-                    if cmd not in grouped_commands:
-                        grouped_commands[cmd] = []
-                    grouped_commands[cmd].append(item_id)
-        
+                    grouped_commands.setdefault(cmd, []).append(item_id)
+
         for cmd, id_list in grouped_commands.items():
-            print(f"Executing command '{cmd}' for items: {id_list}")
-            try:
-                command_function = command_map[cmd]
-                command_function(id_list)
-            except Exception as e:
-                print(f"An error occured executing the function {command_function} for item {id_list}")
+            for single_id in id_list:
+                print(f"Executing command '{cmd}' for item: {single_id}")
+                try:
+                    command_map[cmd](single_id)
+                except Exception as e:
+                    print(f"An error occurred executing {cmd} on {single_id}: {e}")
+                    traceback.print_exc()
 
     def executeCommands(self): 
         search = contentSearch(self.gis)   
         content_list = search.functionalGroupContent(self.gis) 
-        tasks = self.buildTaskDict(self.gis, content_list)
+        tasks = self.buildTaskDict(content_list)
         if tasks:
             self.processCommands(tasks)
         else:
@@ -142,7 +125,7 @@ class tagCommands:
     
     def cmdGulfView(self, id_list: list[str], filter_type:str = "intersect") -> None:
         # we start with an "item"
-        gulf_bounds_item = self.admin_gis.content.get("906c183e08a04d8ab35026f74dc0e4fd")
+        gulf_bounds_item = self.gis.content.get("906c183e08a04d8ab35026f74dc0e4fd")
         # then we get an FLC
         gulf_bounds_layer = gulf_bounds_item.layers[1]
         # then we query the FLC
@@ -162,7 +145,7 @@ class tagCommands:
         
         # print(bbox)
         for item in id_list:
-            item_layer = self.admin_gis.content.get(item)
+            item_layer = self.gis.content.get(item)
             source_flc = FeatureLayerCollection.fromitem(item_layer)
             old_title = str(item_layer.title)
             title_mod = self._replaceSpecialChars(item_layer.title)
@@ -191,7 +174,7 @@ class tagCommands:
                 # get item id from layer properties
                 view_item_id = view_layer.properties["serviceItemId"]
                 # use item id str to get item object
-                view_item = self.admin_gis.content.get(view_item_id)
+                view_item = self.gis.content.get(view_item_id)
                 # conv to list bc im lazy
                 view_item_id_list = list(view_item)
                 # here is where I am uncertain. We want the old title, but we also want to inherit 
@@ -206,6 +189,6 @@ class tagCommands:
                 }
                 item_props = ItemProperties(prop_dict)
                 view_item.update(item_properties=item_props)
-                adminTasks.transferItems(self.admin_gis, view_item_id_list, target_user=str(self.admin_gis.users.me))
+                self.adminTasksInstance.transferItems(self.gis, view_item_id_list, target_user=str(self.gis.users.me))
             except Exception as e:
                 print(f"\nError updating the view item properties or changing ownership: {e}")

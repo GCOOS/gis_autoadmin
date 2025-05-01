@@ -1,37 +1,50 @@
+# auth.py
+
 from arcgis.gis import GIS
 from getpass import getpass
-import os, sys 
+import os
+import sys
+
+# module-level global
+gis: GIS = None
+
 
 class auth:
-    def __init__(self, platform=None):
-        self.platform: str = None
+    def __init__(self, platform: str = None):
+        # store GIS on the instance too
+        self.gis: GIS = None
+        self.platform = platform
 
-    def selfAuth(self, verbose=True) -> GIS:
-        """For authenticating the user in the hosted notebook environment"""
+    def selfAuth(self, verbose: bool = True) -> GIS:
+        """Authenticate via the notebook’s ‘home’ profile and set global gis."""
+        global gis
         try:
-            agol_gis = GIS("home")
-            if verbose:
-                print(f"\n Succesfully Authenticated In the ArcGIS Online Environment")
-                print(f"Portal Name: {agol_gis.properties.portalName}")
-                return agol_gis
+            self.gis = GIS("home")
             
-        except Exception as e:
-            print("An error occured during the environment-based authentication ArcGIS ")
+            if verbose:
+                print("Successfully authenticated in ArcGIS Online.")
+                print("Portal Name:", self.gis.properties.portalName)
+            return None
 
-    def getAuthFromVenv(Self) -> tuple:
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        except Exception as e:
+            print("Error during environment-based authentication:", e)
+            return None
+
+    def getAuthFromVenv(self) -> tuple:
+        """Read username/password from auth.txt in the virtual environment."""
+        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
         venv_path = r"/venv/"
-        auth_file = os.path.join(venv_path, 'auth.txt')
-    
+        auth_file = os.path.join(venv_path, "auth.txt")
+
         try:
-            with open(auth_file, 'r') as file:
+            with open(auth_file, "r") as file:
                 lines = file.read().splitlines()
         except FileNotFoundError:
-            raise FileNotFoundError(f"auth.txt not found in the specified venv directory: {venv_path}")
-        
-        username = None
-        password = None
+            raise FileNotFoundError(
+                f"auth.txt not found in the specified venv directory: {venv_path}"
+            )
 
+        username = password = None
         for line in lines:
             if line.startswith("username:"):
                 username = line.split(":", 1)[1].strip()
@@ -39,40 +52,50 @@ class auth:
                 password = line.split(":", 1)[1].strip()
 
         if not username or not password:
-            raise ValueError("The auth.txt file must contain both a username and a password in the correct format.")
-        
+            raise ValueError(
+                "The auth.txt file must contain both a username and a password."
+            )
         return username, password
 
+    def portalAuth(self, portal_url: str, anon: bool = False, venv_creds: bool = False) -> GIS:
+        """
+        Authenticate against a Portal or anonymously, set global gis,
+        and return the GIS object (or None on failure).
+        """
+        global gis
 
-    def portalAuth(self, portal_url: str, anon = False, venv_creds= False) -> GIS:
-        if venv_creds:
-            username, password = self.getAuthFromVenv()
-        else:
-            input("Input your Portal Username")
-            password = getpass()
         if not anon:
+            if venv_creds:
+                username, password = self.getAuthFromVenv()
+            else:
+                username = input("Portal username: ")
+                password = getpass()
+
             try:
-                gis = GIS(
-                    url= portal_url,
-                    username= username,
+                portal_gis = GIS(
+                    url=portal_url,
+                    username=username,
                     password=password,
-                    verify_cert= False
+                    verify_cert=False,
                 )
-                return gis
+                gis = portal_gis
+                self.gis = portal_gis
+                print("Successfully authenticated with portal.")
+                return portal_gis
+
             except Exception as e:
-                print(f"\nAn Exception occured while authenticating with your portal: {e}")
+                print("Error authenticating with portal:", e)
                 return None
+
         else:
             try:
-                gis = GIS(
-                    url=portal_url
-                )
-                return gis
+                anon_gis = GIS(url=portal_url)
+                gis = anon_gis
+                self.gis = anon_gis
+                print("Successfully connected anonymously to portal.")
+                return anon_gis
+
             except Exception as e:
-                print(f"An error occured when anonymously connecting to {portal_url}")
+                print("Anonymous connection failed:", e)
                 return None
-
-
-
-
         
