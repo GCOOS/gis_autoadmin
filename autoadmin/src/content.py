@@ -28,13 +28,15 @@ class contentGroups:
         # Authenticate if no GIS instance was provided
         if self.gis is None:
             # Use the 'home' profile or modify as needed
-            self.gis = GIS("home")
-
-        # Build functional group list logic
+            try:
+                self.gis = auth.selfAuth()
+            except Exception as e:
+                print(f"There was an error authenticating in the content module: {e}")
+        # Build functional group list 
         functional_search = self.gis.groups.search("tags:functional")
         self.functional_groups = [grp.id for grp in functional_search]
 
-        # Build thematic group dict logic
+        # Build thematic group dict 
         thematic_search = self.gis.groups.search("tags:thematic")
         thematic_groups_dict = {}
         for group in thematic_search:
