@@ -1,7 +1,7 @@
 # gis_autoadmin
 
 ## About
-An installable Python Package for administering content on ArcGIS Online and ArcGIS Enterprise using tags. The central idea of this program is to use properties of content items and groups in order to reduce the work required to properly bring data services into production with ArcGIS. 
+An installable Python Package for administering content on ArcGIS Online and ArcGIS Enterprise centered around tags and content groups.  
 
 ## Content Groups
 Content groups are an integral part of the GCOOS GIS Network (GGN), and may be considered the dominant organizational unit for the GIS. There are two types of content groups that exist within the GGN: Thematic and Functional. 
