@@ -1,7 +1,10 @@
-# gis_autoadmin
+#  V 0.1
 
 ## About
 An installable Python Package for administering content on ArcGIS Online and ArcGIS Enterprise centered around tags and content groups.  
+
+## Current Functionality
+Use the cmd_publish tag in conjunction with groups tagged thematic and functional to automate the transfer of datasets to a primary site adminster account; changes visibility to public and removes command tags.  
 
 ## Content Groups
 Content groups are an integral part of the GCOOS GIS Network (GGN), and may be considered the dominant organizational unit for the GIS. There are two types of content groups that exist within the GGN: Thematic and Functional. 
