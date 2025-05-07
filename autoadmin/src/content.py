@@ -29,7 +29,8 @@ class contentGroups:
         if self.gis is None:
             # Use the 'home' profile or modify as needed
             try:
-                self.gis = auth.selfAuth()
+                # this needs to change
+                self.gis = GIS("home")
             except Exception as e:
                 print(f"There was an error authenticating in the content module: {e}")
         # Build functional group list 
