@@ -74,4 +74,28 @@ class adminTasks:
                     except Exception as e:
                             print(f"Error in removing item {item.title}: {e}")
                             break
+                    
+    def batchAddTags(self, tags_to_add: list | str, item_list: list[arcgis.gis.Item]) -> None:
+        "Takes list or str of tags and updates all items in an item_list"
+        update_dict = {}
+        if isinstance(tags_to_add, str):
+            tag_list = list(tags_to_add)
+        else:
+            tag_list = tags_to_add
+        
+        for item in item_list:
+            old_tags = item.tags
+            old_len = len(item.tags)
+
+            new_tags = list(set(old_tags + tag_list))
+            new_len = len(new_tags)
+            
+            if new_tags is not None and new_len > old_len:
+                print(f"Tag integrity passed, adding {new_len - old_len} tag(s) to the dataset: {item.title}")
+                item.update(item_properties={'tags': new_tags})
+            else:
+                print(f"Tag integrity failed for dataset: {item.title}")
+
+
+             
         
