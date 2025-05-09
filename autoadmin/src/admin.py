@@ -70,10 +70,10 @@ class adminTasks:
                     try:
                         # group_obj = gis.groups.get(group.id)
                         item_sharing_mgr.groups.remove(group.id)
-                        print(f"Added {item.title} to group '{group}'.")
+                        print(f"Removed {item.title} from '{group}'.")
                     except Exception as e:
-                            print(f"Error in removing item {item.title}: {e}")
-                            break
+                            print(f"Error in removing item {item.title} from {group}: {e}")
+                                                  
                     
     def batchAddTags(self, tags_to_add: list | str, item_list: list[arcgis.gis.Item]) -> None:
         "Takes list or str of tags and updates all items in an item_list"

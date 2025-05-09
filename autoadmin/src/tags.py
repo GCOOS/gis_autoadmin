@@ -65,7 +65,7 @@ class tagCommands:
                 cmd_id_map[current_item_id] = cmds
         return cmd_id_map
     
-    def cmdPublish(self, item_id: str) -> None:
+    def cmdPublish(self, item_id: str) -> str | None:
         """Take a single item and share it to multiple groups"""
         item = self.gis.content.get(item_id)
         # first change owner
@@ -86,20 +86,24 @@ class tagCommands:
             self.adminTasksInstance.addItemToGroup(item, thematic_group_ids)
         except Exception as e:
             print(f"\nError adding item to the thematic group: {e}")
+            return item_id
         # unshare from the functional groups
         try:
             self.adminTasksInstance.removeItemFromFunctionalGroup(item)
         except Exception as e:
             print(f"\nError removing item from functional group: {e}")
+            return item_id
         # remove the cmd_publish tag
         try:
             self.removeCommandTag(item, "publish") 
         except Exception as e:
             print(f"\nError removing command tag: {e}")
+            return item_id
         try:
             self.adminTasksInstance.sharePublic(item)
         except Exception as e:
             print(f"\nError sharing item to everyone: {e}")
+            return item_id
         
     
     def processCommands(self, cmd_id_map):

@@ -22,6 +22,7 @@ class contentGroups:
     """
     gis: Optional[GIS] = None
     functional_groups: List[str] = field(init=False)
+    thematic_groups_list: List[str] = field(init=False)
     thematic_groups: Dict[str, List[str]] = field(init=False)
 
     def __post_init__(self):
@@ -36,6 +37,8 @@ class contentGroups:
         # Build functional group list 
         functional_search = self.gis.groups.search("tags:functional")
         self.functional_groups = [grp.id for grp in functional_search]
+
+        #build thematic group list
 
         # Build thematic group dict 
         thematic_search = self.gis.groups.search("tags:thematic")
@@ -71,6 +74,14 @@ class contentGroups:
             for item in content
         }
 
+    def getGroupContent(self, group_id: str) -> List[Any]:
+        """Get a flat list of all Items in all functional groups."""
+        items: List[Any] = []
+        for group_id in self.functional_groups:
+            grp = self.gis.groups.get(group_id)
+            items.extend(grp.content())
+        return items
+
     def allFunctionalGroupContent(self) -> List[Any]:
         """Get a flat list of all Items in all functional groups."""
         items: List[Any] = []
@@ -78,6 +89,19 @@ class contentGroups:
             grp = self.gis.groups.get(group_id)
             items.extend(grp.content())
         return items
+    
+    def allThematicGroupContent(self) -> Dict:
+        """returns a dict of Group_Tag: list[arcgis.gis.items]."""
+        thematic_content_dict = {}
+        for id_tag, group_id in self.thematic_groups.items():
+            try:
+                grp = self.gis.groups.get(group_id)
+                content_item_list = grp.content()
+            except Exception as e:
+                print(f"\nAn error occured while building a dict of all thematic group content")
+            thematic_content_dict[id_tag] = content_item_list
+        return thematic_content_dict
+
 
     def make_id_list(self, content_dict: Dict[str, Dict[str, Any]]) -> List[str]:
         """Extract the 'id' field from each value in a content dict."""
