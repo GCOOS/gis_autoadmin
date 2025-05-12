@@ -38,6 +38,9 @@ class contentGroups:
         functional_search = self.gis.groups.search("tags:functional")
         self.functional_groups = [grp.id for grp in functional_search]
 
+        functional_search = self.gis.groups.search("tags:thematic")
+        self.thematic_groups_list = [grp.id for grp in functional_search]
+
         #build thematic group list
 
         # Build thematic group dict 

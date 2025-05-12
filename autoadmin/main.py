@@ -12,6 +12,7 @@ def main():
 
     publishing_user = "GCOOS_Admin"
     admin = autoadmin(publishing_user=publishing_user)
+
     admin.executeAllTagCommands()
 
 

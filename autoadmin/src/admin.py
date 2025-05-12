@@ -57,7 +57,7 @@ class adminTasks:
                     # group_obj = self.gis.groups.get(group)
                     # print(group_obj)
                     item_sharing_mgr.groups.add(group)
-                    print(f"Added {item.title} to group {group}.")
+                    print(f"Added {item} to group {group}.")
                 except Exception as e:
                         print(f"Error in addItemsToGroup for item {item.title}: {e}")
                         break
