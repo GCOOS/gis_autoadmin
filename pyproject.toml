@@ -13,8 +13,9 @@ dependencies = [
     "pandas"
     ]
 
+[tool.setuptools.package-dir]
+"" = "."            # look for packages at the repo root
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["autoadmin", "autoadmin.*"]
-[tool.setuptools.package-dir]
-"" = "src" 
