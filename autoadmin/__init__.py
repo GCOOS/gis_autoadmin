@@ -1,1 +1,1 @@
-from .autoadmin import autoadmin   
+from . import autoadmin   
