@@ -14,18 +14,13 @@ class autoadmin:
 
     def __post_init__(self):
         if self.gis is None:
-            if global_gis is not None:
-                self.gis = global_gis
-            else:
-                self.gis = auth().selfAuth()
+            self.gis = auth().selfAuth(verbose=False)
 
 
     def executeAllTagCommands(self) -> None:
         """This module will wrap the components in source to provide a 
         process that can be called for scheduled tasks"""
         # Call auth, automatically sets gis at global scope
-        authenticate = auth()
-        authenticate.selfAuth()
         # initialize commands, assigns global gis to self
         tags = tagCommands(self.publishing_user)
         tags.executeCommands()
