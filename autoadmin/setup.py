@@ -7,7 +7,7 @@ setup(
     author="Jerad King",
     author_email="jerad.king@gcoos.org",
     package_dir={"": "src"},
-    packages=find_packages(where="src"),
+    packages=find_packages(),
     install_requires=[
         "arcgis"
     ],
