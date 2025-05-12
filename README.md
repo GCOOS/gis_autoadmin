@@ -1,4 +1,4 @@
-#  V 0.1
+#  V 0.1 (cmd_publish, thematic group enforcement functions)
 
 ## About
 An installable Python Package for administering content on ArcGIS Online and ArcGIS Enterprise centered around tags and content groups.  
