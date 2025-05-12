@@ -1,1 +1,2 @@
-from . import autoadmin   
+from . import autoadmin
+from . import src   
