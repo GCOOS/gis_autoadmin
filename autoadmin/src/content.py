@@ -6,7 +6,7 @@ from arcgis.gis import GIS, ItemProperties
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 from .authenticate import gis as global_gis, auth
-
+import autoadmin
 
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
@@ -28,12 +28,10 @@ class contentGroups:
     def __post_init__(self):
         # Authenticate if no GIS instance was provided
         if self.gis is None:
-            # Use the 'home' profile or modify as needed
-            try:
-                # this needs to change
-                self.gis = GIS("home")
-            except Exception as e:
-                print(f"There was an error authenticating in the content module: {e}")
+            if autoadmin.autoadmin.gis:
+                self.gis = autoadmin.autoadmin.gis
+            else:
+                self.gis = auth().selfAuth()
         # Build functional group list 
         functional_search = self.gis.groups.search("tags:functional")
         self.functional_groups = [grp.id for grp in functional_search]

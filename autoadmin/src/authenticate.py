@@ -15,7 +15,7 @@ class auth:
         self.gis: GIS = None
         self.platform = platform
 
-    def selfAuth(self, verbose: bool = True) -> GIS:
+    def selfAuth(self, verbose: bool = False) -> GIS:
         """Authenticate via the notebook’s ‘home’ profile and set global gis."""
         global gis
         try:

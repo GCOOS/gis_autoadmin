@@ -4,7 +4,7 @@ from arcgis.gis import GIS, ItemProperties
 # from arcgis.features import FeatureLayerCollection
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict
-
+import autoadmin
 import arcgis.gis
 import arcgis.gis.sharing
 from .authenticate import gis as global_gis, auth
@@ -22,8 +22,8 @@ class adminTasks:
 
     def __post_init__(self):
         if self.gis is None:
-            if global_gis is not None:
-                self.gis = global_gis
+            if autoadmin.autoadmin.gis:
+                self.gis = autoadmin.autoadmin.gis
             else:
                 self.gis = auth().selfAuth()
         # try:

@@ -6,7 +6,7 @@ from arcgis.gis import GIS, ItemProperties
 import arcgis.geometry
 # from arcgis.geometry import Geometry
 from arcgis.features import FeatureLayerCollection
-
+import autoadmin
 from .admin import adminTasks
 from .content import contentGroups
 from .authenticate import gis as global_gis, auth
@@ -27,8 +27,8 @@ class tagCommands:
     def __post_init__(self):
         # Ensure we have a GIS connection
         if self.gis is None:
-            if global_gis is not None:
-                self.gis = global_gis
+            if autoadmin.autoadmin.gis:
+                self.gis = autoadmin.autoadmin.gis
             else:
                 self.gis = auth().selfAuth()
         

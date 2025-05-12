@@ -15,8 +15,10 @@ def main():
 
     publishing_user = "GCOOS_Admin"
     admin = autoadmin(publishing_user=publishing_user)
-
-    admin.executeAllTagCommands()
+    # groups = admin.getThematicGroups(as_object=True)
+    # print(groups[2].title)
+    admin.enforceThematicContentOwner("54a8889f2d0841c3a31cb4fa120cf0ff", transfer_owner=True, remove_content=False)
+    # admin.executeAllTagCommands()
 
 
 if __name__ == "__main__":
