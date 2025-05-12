@@ -69,7 +69,8 @@ class tagCommands:
         """Take a single item and share it to multiple groups"""
         item = self.gis.content.get(item_id)
         # first change owner
-        self.adminTasksInstance.transferOwnership(item)
+        if item.owner != self.publishing_user:
+            self.adminTasksInstance.transferOwnership(item)
         
         thematic_group_ids = []
         # iterate through the groups to get the key, which is the tag we are looking for

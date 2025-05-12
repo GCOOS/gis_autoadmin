@@ -32,7 +32,7 @@ class autoadmin:
     
     # def executePublish(self) -> None:
     
-    def getThematicGroups(self, as_object: bool = False) -> List | list[arcgis.gis.groups]:
+    def getThematicGroups(self, as_object: bool = False) -> List | list[any]:
         contentMod = contentGroups()
         # list of ids from the class attribute
         groups_attr = contentMod.thematic_groups_list 
@@ -46,7 +46,7 @@ class autoadmin:
         else:
             return contentMod.thematic_groups_list
 
-    def getFunctionalGroups(self, as_object: bool = False) -> List | list[arcgis.gis.groups]:
+    def getFunctionalGroups(self, as_object: bool = False) -> List | list[any]:
         contentMod = contentGroups()
         group_objs = []
         groups_attr = contentMod.functional_groups 
@@ -59,6 +59,17 @@ class autoadmin:
         else:
             return contentMod.functional_groups
 
+    def enforceThematicSharing(self, group_ids: list[str]) -> None:
+        for group_id in group_ids:
+            grp = self.gis.groups.get(group_id)
+            group_content = grp.content()
+            for item in group_content:
+                item_sharing_mgr = item.sharing
+                if item_sharing_mgr.sharing_level != "everyone":
+                    item_sharing_mgr.sharing_level = "everyone"
+                else:
+                    pass
+                     
     def enforceThematicContentOwner(self, group_ids: list[str], transfer_owner: bool, remove_content: bool) -> None:
         # instantiate the contentGroups class 
         for group_id in group_ids:
