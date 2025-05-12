@@ -59,7 +59,7 @@ class adminTasks:
                     item_sharing_mgr.groups.add(group)
                     print(f"Added {item} to group {group}.")
                 except Exception as e:
-                        print(f"Error in addItemsToGroup for item {item.title}: {e}")
+                        print(f"Error in addItemsToGroup for item {item}: {e}")
                         break
                 
     def removeItemFromFunctionalGroup(self, item: arcgis.gis.Item) -> None:
