@@ -8,7 +8,7 @@ An installable Python Package for administering content on ArcGIS Online and Arc
 Use the cmd_publish tag in conjunction with groups tagged thematic and functional to automate the transfer of datasets to a primary site adminster account; changes visibility to public and removes command tags.  
 
 ## Content Groups
-Content groups are an integral part of the GCOOS GIS Network (GGN), and may be considered the dominant organizational unit for the GIS. There are two types of content groups that exist within the GGN: Thematic and Functional. 
+Content groups are an integral part of any well administered ArcGIS and may be considered the dominant organizational unit for the WebGIS platform. There are two types of content groups that exist within the GGN: Thematic and Functional. 
 
 ### Functional Content Groups
 Functional Content Groups are content groups that contain content items that are currently in development, need review, or otherwise do not belong to the PSA account. 
