@@ -66,7 +66,7 @@ class adminTasks:
             item_sharing_mgr = item.sharing
             gis = self.gis
             for group in  item_sharing_mgr.shared_with["groups"]:
-                if "functional" in group.tags:
+                if "functional" in group.tags and "DC" not in group.tags:
                     try:
                         # group_obj = gis.groups.get(group.id)
                         item_sharing_mgr.groups.remove(group.id)
