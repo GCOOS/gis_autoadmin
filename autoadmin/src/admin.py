@@ -69,7 +69,7 @@ class adminTasks:
                 if "functional" in group.tags and "DC" not in group.tags:
                     try:
                         # group_obj = gis.groups.get(group.id)
-                        item_sharing_mgr.groups.remove(group.id)
+                        item_sharing_mgr.groups.remove(group)
                         print(f"Removed {item.title} from '{group}'.")
                     except Exception as e:
                             print(f"Error in removing item {item.title} from {group}: {e}")
