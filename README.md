@@ -1,4 +1,4 @@
-#  GIS AutoAdmin V0.1
+#  GIS AutoAdmin V0.2
 
 
 ## About
