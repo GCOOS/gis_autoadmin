@@ -93,10 +93,13 @@ class contentGroups:
     
     def selfPublishContent(self) -> List[Any]:
         items: List[Any] = []
-        cm = self.gis.ContentManager
-        content = cm.search("tags:cmd_publish")
-        items.extent(content)
-        return items
+        cm = self.gis.content
+        content = cm.search(query=f"tags:cmd_publish AND owner:{self.gis.users.me.username}")
+        if content:
+            items.extend(content)
+            return items
+        else:
+            return None
     
     def allThematicGroupContent(self) -> Dict:
         """returns a dict of Group_Tag: list[arcgis.gis.items]."""

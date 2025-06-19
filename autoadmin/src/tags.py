@@ -69,9 +69,7 @@ class tagCommands:
         """Take a single item and share it to multiple groups"""
         item = self.gis.content.get(item_id)
         # first change owner
-        if item.owner != self.publishing_user:
-            self.adminTasksInstance.transferOwnership(item)
-        
+                
         thematic_group_ids = []
         # iterate through the groups to get the key, which is the tag we are looking for
         # build a list of possible group tags
@@ -85,32 +83,29 @@ class tagCommands:
         try:
             print(f"\nAttempting to share to groups {thematic_group_ids}")
             self.adminTasksInstance.addItemToGroup(item, thematic_group_ids)
-        except Exception as e1:
-            print(f"\nError adding item to the thematic group: {e1}")
+        except Exception as e:
+            print(f"\nError adding item to the thematic group: {e}")
             return item_id
         # unshare from the functional groups
         try:
             self.adminTasksInstance.removeItemFromFunctionalGroup(item)
-        except Exception as e2:
-            print(f"\nError removing item from functional group: {e2}")
+        except Exception as e:
+            print(f"\nError removing item from functional group: {e}")
             return item_id
         # remove the cmd_publish tag
-        if not e1:
-            try:
-                self.removeCommandTag(item, "publish") 
-            except Exception as e3:
-                print(f"\nError removing command tag: {e3}")
-                return item_id
-        else:
-            return None
-        if not e1 or e3:
-            try:
-                self.adminTasksInstance.sharePublic(item)
-            except Exception as e4:
-                print(f"\nError sharing item to everyone: {e4}")
-                return item_id
-        else:
-            return None
+        try:
+            self.removeCommandTag(item, "publish") 
+        except Exception as e:
+            print(f"\nError removing command tag: {e}")
+            return item_id
+        try:
+            self.adminTasksInstance.sharePublic(item)
+        except Exception as e:
+            print(f"\nError sharing item to everyone: {e}")
+            return item_id
+        
+        if item.owner != self.publishing_user:
+            self.adminTasksInstance.transferOwnership(item)
         
     
     def processCommands(self, cmd_id_map):
