@@ -17,7 +17,7 @@ class autoadmin:
             self.gis = auth().selfAuth(verbose=False)
 
 
-    def executeAllTagCommands(self, checkCurrentUser: bool | None = False) -> None:
+    def executeAllTagCommands(self, checkCurrentUser: bool = False) -> None:
         """Execute all available tag commands from either functional content groups
         OR from the current user"""
         # Call auth, automatically sets gis at global scope
