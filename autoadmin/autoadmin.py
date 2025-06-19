@@ -17,13 +17,13 @@ class autoadmin:
             self.gis = auth().selfAuth(verbose=False)
 
 
-    def executeAllTagCommands(self) -> None:
-        """This module will wrap the components in source to provide a 
-        process that can be called for scheduled tasks"""
+    def executeAllTagCommands(self, checkCurrentUser: bool | None = False) -> None:
+        """Execute all available tag commands from either functional content groups
+        OR from the current user"""
         # Call auth, automatically sets gis at global scope
         # initialize commands, assigns global gis to self
         tags = tagCommands(self.publishing_user)
-        tags.executeCommands()
+        tags.executeCommands(checkCurrentUser)
     
     # def executePublish(self) -> None:
     

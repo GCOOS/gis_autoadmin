@@ -126,9 +126,12 @@ class tagCommands:
                     print(f"An error occurred executing {cmd} on {single_id}: {e}")
                     traceback.print_exc()
 
-    def executeCommands(self): 
+    def executeCommands(self, checkCurrentUser: bool | None = False): 
         search = contentGroups(gis= self.gis)   
-        content_list = search.allFunctionalGroupContent() 
+        if checkCurrentUser:
+            content_list = search.selfPublishContent()
+        else:
+            content_list = search.allFunctionalGroupContent() 
         tasks = self.buildTaskDict(content_list)
         if tasks:
             self.processCommands(tasks)
